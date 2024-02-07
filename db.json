@@ -1,0 +1,6 @@
+{
+    "host" : "localhost",
+    "user": "root",
+    "password": "dummy",
+    "database": "investwell_project"
+  }
