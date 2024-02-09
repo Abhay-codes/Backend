@@ -1,9 +1,51 @@
 const express = require("express");
 const  {loginService, signUpService} =require('../services');
+const jwt = require('jsonwebtoken');
+
+
+
 
 
 const emailRegex = /^[^\d][a-zA-Z\d._-]*[a-zA-Z][a-zA-Z\d._-]*@([a-zA-Z\d.-]+\.[a-zA-Z]{2,})$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@])[a-zA-Z\d@]+$/;
+
+
+const verifyToken = (req, res, next) => {
+    console.log("verifytoken",req.cookies);
+    secretkey='876897668899';
+    const token1 = req.cookies.token;
+
+    console.log("token1",token1);
+    if (!token1) {
+        return res.status(401).send("User not authenticated");
+    }
+
+    jwt.verify(token1, secretkey, (err, payload) => {
+        if (err) {
+            // Token verification failed
+            console.error("JWT verification error:", err);
+            return res.status(403).send("Token verification failed");
+        }
+
+        if (!payload) {
+            // Invalid token
+            return res.status(401).send("User not authenticated");
+        }
+
+        console.log("Payload:", payload);
+        req.email= payload.email; 
+        req.password=payload.password;
+        
+    });
+};
+
+
+
+
+
+
+
+
 const loginController=async(req,res)=>{
     try{
     const { email, password } = req.body;
@@ -36,6 +78,15 @@ const loginController=async(req,res)=>{
 
         // For successfull login
         else {
+
+            const secretKey = '876897668899';
+            const token = jwt.sign(loginData, secretKey, { expiresIn: '30s' }); 
+            console.log('JWT token:', token);
+            res.cookie('token',token);
+               
+            
+
+
             res.send({
                 status: 1,
                 success: true,
@@ -146,5 +197,6 @@ const signUpController=async(req,res)=>{
 
 module.exports = {
     loginController,
-    signUpController
+    signUpController,
+    verifyToken
   };
